@@ -1,0 +1,45 @@
+CREATE TABLE books (
+id bigint not null,
+category_id  int not null,
+author character varying not null,
+title character varying not null,
+year int not null );
+
+CREATE TABLE books_wo_sharding (
+id bigint not null,
+category_id  int not null,
+author character varying not null,
+title character varying not null,
+year int not null );
+
+ALTER TABLE ONLY "books" ADD CONSTRAINT "pk_books" PRIMARY KEY ("id");
+
+ALTER TABLE ONLY "books_wo_sharding" ADD CONSTRAINT "pk_books_wo_sharding" PRIMARY KEY ("id");
+
+select _2gis_partition_magic('books', 'category_id');
+
+INSERT INTO books (id, category_id, author, title, year)
+VALUES (1, 1, 'John Doe', 'Sample Book Title', 2021);
+
+
+INSERT INTO books_wo_sharding (id, category_id, author, title, year)
+VALUES (1, 1, 'John Doe', 'Sample Book Title', 2021);
+
+docker cp books1.csv postgres_db:/books1.csv
+
+COPY books(id, category_id, author, title, year)
+FROM '/books5.csv'
+DELIMITER ','
+CSV HEADER;
+
+COPY books_wo_sharding(id, category_id, author, title, year)
+FROM '/books5.csv'
+DELIMITER ','
+CSV HEADER;
+
+C:\siege-windows\siege -c 10 -t 1M http://localhost:5000/books
+C:\siege-windows\siege -c 10 -t 1M -f C:\siege-windows\siege_post_test.txt
+
+SELECT create_distributed_table('books', 'category_id');
+
+
